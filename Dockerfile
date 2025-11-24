@@ -15,4 +15,4 @@ RUN if [ -f .env.example ]; then cp .env.example .env; fi
 ENV PORT 8080
 
 # usar gunicorn con worker de uvicorn
-CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "app.main:app", "--bind", "0.0.0.0:$PORT", "--workers", "1"]
+CMD ["sh", "-c", "gunicorn -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:$PORT"]
