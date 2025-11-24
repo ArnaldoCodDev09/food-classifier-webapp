@@ -6,6 +6,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from .model_client import hf_predict
 
 app = FastAPI(title="Food Classifier - Proxy")
+# Al principio del archivo (si no está)
+from fastapi.staticfiles import StaticFiles
+import os
+
+# ... después de app = FastAPI(...)
+# Montar carpeta 'web' para servir index.html y scripts
+web_dir = os.path.join(os.path.dirname(__file__), "..", "web")
+app.mount("/web", StaticFiles(directory=web_dir), name="web")
 
 app.add_middleware(
     CORSMiddleware,
