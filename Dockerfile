@@ -9,7 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # copiar aplicación
 COPY app ./app
 COPY web ./web
-COPY .env.example .env || true
+RUN if [ -f .env.example ]; then cp .env.example .env; fi
 
 # puerto que Render asignará con la variable $PORT
 ENV PORT 8080
