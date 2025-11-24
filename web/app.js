@@ -9,13 +9,14 @@ document.getElementById("send").onclick = async function () {
 
   const formData = new FormData();
   const file = fileInput.files[0];
-  formData.append("file", file);
-  formData.append("image", file); // <-- intento con otro nombre por si el backend espera "image"
+  formData.append("file", file);       // coincida con backend
+  // formData.append("image", file);   // opcional si tu backend espera "image"
 
   resultDiv.innerText = "Procesando...";
 
   try {
-    const response = await fetch("https://food-classifier-webapp-shzv.onrender.com/predict", {
+    // <-- USAR RUTA ROOT (no relativa /web/predict)
+    const response = await fetch("/predict", {
       method: "POST",
       body: formData
     });
@@ -30,9 +31,10 @@ document.getElementById("send").onclick = async function () {
     }
 
     const data = JSON.parse(text);
+    // ahora frontend espera { label, confidence }
     resultDiv.innerHTML = `
-      <p><strong>Predicción:</strong> ${data.label}</p>
-      <p><strong>Confianza:</strong> ${data.confidence}</p>
+      <p><strong>Predicción:</strong> ${data.label ?? JSON.stringify(data.predictions)}</p>
+      <p><strong>Confianza:</strong> ${data.confidence ?? "-"}</p>
     `;
   } catch (err) {
     console.error(err);
