@@ -13,7 +13,7 @@ app = FastAPI(title="Food Classifier - Proxy")
 
 # Montar carpeta 'web' para servir index.html y scripts
 web_dir = os.path.join(os.path.dirname(__file__), "..", "web")
-app.mount("/web", StaticFiles(directory=web_dir), name="web")
+app.mount("/web", StaticFiles(directory=web_dir, html=True), name="web")
 
 # CORS para permitir peticiones del frontend
 app.add_middleware(
