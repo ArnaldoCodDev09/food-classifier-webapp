@@ -19,12 +19,6 @@ fileInput.addEventListener('change', () => {
   previewImg.style.display = 'block';
 });
 
-// allow clicking the fake button label (safe selector for the label)
-const fileLabel = document.querySelector('label[for="fileInput"]');
-if (fileLabel) {
-  fileLabel.addEventListener('click', () => fileInput.click());
-}
-
 // === helper format confidence ===
 function fmtConfidence(v){
   if (v == null) return '-';
@@ -33,7 +27,7 @@ function fmtConfidence(v){
     return `${(v*100).toFixed(2)}%`;
   }
   const n = Number(v);
-  return isNaN(n) ? String(v) : `${(n*100).toFixed(02)}%`;
+  return isNaN(n) ? String(v) : `${(n*100).toFixed(2)}%`;
 }
 
 // === call backend predict ===
@@ -93,7 +87,6 @@ sendBtn.addEventListener('click', async () => {
   let t=0;
   function step(){
     t += 0.02;
-    // oscillate border width and glow
     const w = 1 + Math.abs(Math.sin(t))*2;
     electricRoot.style.setProperty('--eb-border-width', `${w}px`);
     requestAnimationFrame(step);
@@ -101,7 +94,7 @@ sendBtn.addEventListener('click', async () => {
   step();
 })();
 
-// === lightweight splash canvas for cursor trails (simple particle, low cost) ===
+// === lightweight splash canvas ===
 (function splashParticles(){
   const c = splashCanvas;
   const ctx = c.getContext('2d');
@@ -113,29 +106,36 @@ sendBtn.addEventListener('click', async () => {
   const particles = [];
   function addParticle(x,y){
     particles.push({
-      x, y, vx:(Math.random()-0.5)*2, vy:(Math.random()-0.5)*2,
+      x, y,
+      vx:(Math.random()-0.5)*2,
+      vy:(Math.random()-0.5)*2,
       life: 40 + Math.random()*40,
       size: 8 + Math.random()*18,
       hue: Math.floor(160 + Math.random()*120)
     });
   }
+
   window.addEventListener('mousemove', e => {
     addParticle(e.clientX, e.clientY);
     if (Math.random()>0.85) addParticle(e.clientX+10, e.clientY+10);
   });
 
-  function resize(){
-    w = c.width = innerWidth*DPR; h = c.height = innerHeight*DPR;
-    c.style.width = innerWidth+'px'; c.style.height = innerHeight+'px';
+  window.addEventListener('resize', () => {
+    w = c.width = innerWidth*DPR;
+    h = c.height = innerHeight*DPR;
+    c.style.width = innerWidth+'px';
+    c.style.height = innerHeight+'px';
     ctx.setTransform(DPR,0,0,DPR,0,0);
-  }
-  window.addEventListener('resize', resize);
+  });
 
   function draw(){
     ctx.clearRect(0,0,innerWidth,innerHeight);
     for (let i = particles.length-1; i>=0; i--){
       const p = particles[i];
-      p.x += p.vx; p.y += p.vy; p.life--;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life--;
+
       const alpha = Math.max(0, p.life/80);
       ctx.beginPath();
       const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
@@ -143,8 +143,10 @@ sendBtn.addEventListener('click', async () => {
       g.addColorStop(0.6, `hsla(${p.hue},70%,55%,${0.25*alpha})`);
       g.addColorStop(1, `hsla(${p.hue},60%,30%,0)`);
       ctx.fillStyle = g;
+
       ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
       ctx.fill();
+
       if (p.life<=0) particles.splice(i,1);
     }
     requestAnimationFrame(draw);
