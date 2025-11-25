@@ -9,13 +9,11 @@ document.getElementById("send").onclick = async function () {
 
   const formData = new FormData();
   const file = fileInput.files[0];
-  formData.append("file", file);       // coincida con backend
-  // formData.append("image", file);   // opcional si tu backend espera "image"
+  formData.append("file", file);
 
   resultDiv.innerText = "Procesando...";
 
   try {
-    // <-- USAR RUTA ROOT (no relativa /web/predict)
     const response = await fetch("/predict", {
       method: "POST",
       body: formData
@@ -31,10 +29,26 @@ document.getElementById("send").onclick = async function () {
     }
 
     const data = JSON.parse(text);
-    // ahora frontend espera { label, confidence }
+
+    // Normalizar y formatear confianza
+    const label = data.label ?? (data.predictions ? JSON.stringify(data.predictions) : "Desconocido");
+    let confidence = data.confidence;
+    if (confidence === null || confidence === undefined) {
+      confidence = "-";
+    } else {
+      // Convertir a porcentaje con 2 decimales si viene entre 0 y 1
+      if (typeof confidence === "number" && confidence <= 1) {
+        confidence = `${(confidence * 100).toFixed(2)}%`;
+      } else if (typeof confidence === "number") {
+        confidence = confidence.toFixed(4);
+      } else {
+        confidence = String(confidence);
+      }
+    }
+
     resultDiv.innerHTML = `
-      <p><strong>Predicción:</strong> ${data.label ?? JSON.stringify(data.predictions)}</p>
-      <p><strong>Confianza:</strong> ${data.confidence ?? "-"}</p>
+      <p><strong>Predicción:</strong> ${label}</p>
+      <p><strong>Confianza:</strong> ${confidence}</p>
     `;
   } catch (err) {
     console.error(err);
