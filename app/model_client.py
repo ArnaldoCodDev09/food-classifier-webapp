@@ -7,8 +7,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 HF_API_TOKEN = os.getenv("HF_API_TOKEN")
-HF_MODEL = os.getenv("HF_MODEL", "openai/clip-vit-base-patch32")
-API_URL = f"https://api-inference.huggingface.co/models/{HF_MODEL}"
+HF_MODEL = os.getenv("HF_MODEL", "nateraw/vit-base-beans")  # modelo por defecto compatible con clasificación
+# NUEVA URL: usar el router de Hugging Face
+API_URL = f"https://router.huggingface.co/hf-inference/models/{HF_MODEL}"
 
 headers = {
     "Authorization": f"Bearer {HF_API_TOKEN}",
@@ -17,7 +18,7 @@ headers = {
 }
 
 def hf_predict(image_bytes, timeout=30):
-    """Envía imagen al endpoint de HuggingFace y mejora logging/herror handling."""
+    """Envía imagen al router.huggingface.co y retorna la predicción normalizada."""
     try:
         resp = requests.post(API_URL, headers=headers, data=image_bytes, timeout=timeout)
     except requests.RequestException as e:
@@ -25,24 +26,18 @@ def hf_predict(image_bytes, timeout=30):
         raise Exception(f"Error de conexión a HF: {e}")
 
     logger.info("HF response status: %s", resp.status_code)
-    # loguea body corto para debug
-    try:
-        body_preview = resp.text[:1000]
-    except Exception:
-        body_preview = "<no text>"
-    logger.info("HF response text (preview): %s", body_preview)
+    logger.info("HF response text (preview): %s", resp.text[:1000])
 
     if resp.status_code != 200:
-        # si devuelve JSON con mensaje de error, intenta mostrarlo
-        err_text = resp.text
-        raise Exception(f"HF API error {resp.status_code}: {err_text}")
+        # Mostrar el body completo en el error para debug (se verá en logs)
+        raise Exception(f"HF API error {resp.status_code}: {resp.text}")
 
     try:
         data = resp.json()
     except ValueError:
         raise Exception("HF devolvió una respuesta no-JSON")
 
-    # intentamos normalizar varias formas de respuesta
+    # Normalización mínima para devolver {label, confidence, raw}
     if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
         label = data[0].get("label") or data[0].get("name") or data[0].get("predicted_label")
         score = data[0].get("score") or data[0].get("confidence")
@@ -53,8 +48,4 @@ def hf_predict(image_bytes, timeout=30):
         label = None
         score = None
 
-    return {
-        "label": label,
-        "confidence": score,
-        "raw": data
-    }
+    return {"label": label, "confidence": score, "raw": data}
