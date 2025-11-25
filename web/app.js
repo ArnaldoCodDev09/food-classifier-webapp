@@ -1,9 +1,10 @@
 document.getElementById("send").onclick = async function () {
   const fileInput = document.getElementById("file");
   const resultDiv = document.getElementById("result");
+  const statusEl = document.getElementById("status");
 
   if (!fileInput.files.length) {
-    resultDiv.innerText = "Por favor sube una imagen.";
+    resultDiv.innerHTML = `<div style="color:#b00">Por favor sube una imagen.</div>`;
     return;
   }
 
@@ -11,7 +12,16 @@ document.getElementById("send").onclick = async function () {
   const file = fileInput.files[0];
   formData.append("file", file);
 
-  resultDiv.innerText = "Procesando...";
+  // Mostrar preview inmediato
+  const previewURL = URL.createObjectURL(file);
+  resultDiv.innerHTML = `
+    <div class="preview"><img src="${previewURL}" alt="preview"></div>
+    <div class="info">
+      <div style="font-weight:700;color:#333">Procesando imagen...</div>
+      <div style="color:#666;font-size:13px;margin-top:10px">Esto puede tardar unos segundos la primera vez.</div>
+    </div>
+  `;
+  statusEl.innerText = "Enviando...";
 
   try {
     const response = await fetch("/predict", {
@@ -19,12 +29,14 @@ document.getElementById("send").onclick = async function () {
       body: formData
     });
 
+    statusEl.innerText = "";
+
     console.log("HTTP status:", response.status);
     const text = await response.text();
     console.log("Body raw:", text);
 
     if (!response.ok) {
-      resultDiv.innerText = `Error al procesar la imagen. Estado ${response.status}`;
+      resultDiv.innerHTML = `<div style="color:#b00">Error al procesar la imagen. Estado ${response.status}</div>`;
       return;
     }
 
@@ -36,7 +48,6 @@ document.getElementById("send").onclick = async function () {
     if (confidence === null || confidence === undefined) {
       confidence = "-";
     } else {
-      // Convertir a porcentaje con 2 decimales si viene entre 0 y 1
       if (typeof confidence === "number" && confidence <= 1) {
         confidence = `${(confidence * 100).toFixed(2)}%`;
       } else if (typeof confidence === "number") {
@@ -46,12 +57,30 @@ document.getElementById("send").onclick = async function () {
       }
     }
 
+    // Intentar sacar top-3 desde data.raw si existe (formato HF: lista de {label,score})
+    let topHtml = "";
+    if (Array.isArray(data.raw) && data.raw.length) {
+      topHtml = "<div style='margin-top:8px'><strong>Top 3:</strong><ul class='toplist'>";
+      const top = data.raw.slice(0, 3);
+      for (const p of top) {
+        const lab = p.label ?? p.name ?? JSON.stringify(p);
+        const sc = (typeof p.score === "number" && p.score <= 1) ? `${(p.score*100).toFixed(2)}%` : (p.score ?? "-");
+        topHtml += `<li>${lab} — ${sc}</li>`;
+      }
+      topHtml += "</ul></div>";
+    }
+
     resultDiv.innerHTML = `
-      <p><strong>Predicción:</strong> ${label}</p>
-      <p><strong>Confianza:</strong> ${confidence}</p>
+      <div class="preview"><img src="${previewURL}" alt="preview"></div>
+      <div class="info">
+        <div class="label">Predicción: ${label}</div>
+        <div class="confidence">Confianza: ${confidence}</div>
+        ${topHtml}
+      </div>
     `;
   } catch (err) {
     console.error(err);
-    resultDiv.innerText = "Error conectando al servidor.";
+    statusEl.innerText = "";
+    resultDiv.innerHTML = `<div style="color:#b00">Error conectando al servidor.</div>`;
   }
 };
