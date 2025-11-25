@@ -1,144 +1,232 @@
 <!doctype html>
-<html>
+<html lang="es">
 <head>
   <meta charset="utf-8"/>
-  <title>Food Classifier - Demo</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Food Classifier — Pro Demo</title>
+
+  <!-- Estilos PRO (todo inline para desplegar rápido) -->
   <style>
     :root{
-      --accent:#2d72ff;
-      --bg:#f7f8fa;
-      --card:#ffffff;
-      --muted:#6b6b6b;
+      --bg: #0f1724;
+      --card:#0b1220;
+      --muted:#98a0b3;
+      --accent:#ff7a59;
+      --accent-2:#7a9bff;
+      --glass: rgba(255,255,255,0.04);
+      --radius: 14px;
+      --glass-2: rgba(255,255,255,0.03);
     }
     *{box-sizing:border-box}
-    body {
-      font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-      background: var(--bg);
-      margin: 0;
-      padding: 24px;
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg,#071021 0%, #071527 40%, #051025 100%);
+      color:#eef2f7;
       -webkit-font-smoothing:antialiased;
+      padding:28px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
     }
 
-    .container {
-      max-width: 880px;
-      margin: 36px auto;
-      background: var(--card);
-      padding: 28px;
-      border-radius: 12px;
-      box-shadow: 0 8px 30px rgba(20,20,30,0.06);
+    .wrap {
+      width:100%;
+      max-width:1100px;
     }
 
-    h1{
-      margin:0 0 6px 0;
-      font-size:28px;
-      color:#111;
-      text-align:left;
+    header.appbar {
+      display:flex;
+      gap:20px;
+      align-items:center;
+      margin-bottom:18px;
+    }
+    .logo {
+      display:flex; gap:12px; align-items:center;
+      background: linear-gradient(90deg,var(--accent),var(--accent-2));
+      padding:10px 14px; border-radius:12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    }
+    .logo b { letter-spacing:0.6px; }
+    .title {
+      display:flex; flex-direction:column;
+      margin-left:6px;
+    }
+    .title .h { font-size:20px; font-weight:700; color:#fff }
+    .title .sub { font-size:13px; color:var(--muted) }
+
+    /* Main card */
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 12px 40px rgba(2,6,23,0.6);
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:22px;
+      align-items:start;
+      border: 1px solid rgba(255,255,255,0.03);
     }
 
-    p.subtitle{
-      margin:0 0 20px 0;
-      color:var(--muted);
-      font-size:14px;
+    /* Left preview */
+    .preview {
+      background: linear-gradient(180deg, var(--glass), var(--glass-2));
+      border-radius:12px;
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      align-items:center;
+      justify-content:flex-start;
+      min-height:320px;
+      border: 1px solid rgba(255,255,255,0.025);
     }
+    .preview img {
+      width:100%;
+      max-height:280px;
+      object-fit:cover;
+      border-radius:10px;
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+    .upload-hint { color:var(--muted); font-size:13px; text-align:center }
 
-    .controls{
+    /* Right info */
+    .info {
+      padding:6px 4px;
+    }
+    .controls {
       display:flex;
       gap:12px;
       align-items:center;
+      margin-bottom:12px;
       flex-wrap:wrap;
-      margin-bottom:18px;
     }
-
-    input[type="file"]{
-      padding:8px 10px;
-      border-radius:8px;
-      border:1px solid #e6e6e6;
-      background:white;
-    }
-
-    button{
-      background:var(--accent);
-      color:white;
-      border:0;
-      padding:10px 16px;
-      border-radius:8px;
+    .file-btn {
+      background:transparent;
+      border:1px dashed rgba(255,255,255,0.06);
+      padding:10px 12px;
+      border-radius:10px;
+      color:var(--muted);
       cursor:pointer;
       font-weight:600;
-      box-shadow: 0 6px 18px rgba(45,114,255,0.12);
     }
-    button:active{transform:translateY(1px)}
-    button[disabled]{opacity:0.6; cursor:not-allowed}
-
-    #result {
-      background:#f2f5fb;
-      padding:22px;
-      margin-top:18px;
+    .primary {
+      background: linear-gradient(90deg,var(--accent),var(--accent-2));
+      color:#061126;
+      border:0;
+      padding:10px 16px;
       border-radius:10px;
-      border-left:4px solid var(--accent);
-      min-height:120px;
-      display:flex;
-      gap:20px;
-      align-items:flex-start;
-      flex-wrap:wrap;
+      cursor:pointer;
+      font-weight:700;
+      box-shadow: 0 10px 30px rgba(122,155,255,0.08);
+    }
+    .primary[disabled]{opacity:0.6; cursor:not-allowed}
+
+    #status {
+      font-size:13px;
+      color:var(--muted);
+      margin-left:auto;
     }
 
-    .preview {
-      min-width:160px;
-      max-width:320px;
-      border-radius:8px;
-      overflow:hidden;
-      box-shadow: 0 6px 18px rgba(10,10,20,0.04);
-      background:white;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-    .preview img { width:100%; height:auto; display:block; }
-
-    .info {
-      flex:1 1 320px;
-      min-width:200px;
+    .resultCard {
+      margin-top:8px;
+      padding:16px;
+      border-radius:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));
+      border:1px solid rgba(255,255,255,0.02);
     }
 
     .label {
-      font-size:20px;
-      font-weight:700;
-      color:#111;
-      margin-bottom:10px;
+      font-size:22px;
+      font-weight:800;
+      color:#fff;
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .badge {
+      font-size:12px;
+      background:rgba(255,255,255,0.06);
+      padding:6px 8px;
+      border-radius:999px;
+      color:var(--muted);
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
     }
 
-    .confidence {
+    .conf {
       font-size:18px;
-      color:#333;
-      margin-bottom:8px;
+      margin-top:8px;
+      color: #dbeafe;
+      font-weight:700;
     }
 
-    ul.toplist{
-      margin:8px 0 0 0;
-      padding-left:18px;
-      color:#222;
-    }
+    ul.top3 { margin:12px 0 0 0; padding-left:16px; color:var(--muted) }
+    ul.top3 li { margin-bottom:6px; font-weight:600 }
 
-    @media (max-width:600px){
-      .controls{flex-direction:column; align-items:stretch}
-      .preview{width:100%}
-      .info{width:100%}
+    /* spinner */
+    .spinner {
+      width:36px; height:36px; border-radius:50%;
+      border:4px solid rgba(255,255,255,0.08);
+      border-top-color: #fff;
+      animation: spin 1s linear infinite;
+      display:inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* small helpers */
+    .muted { color:var(--muted); font-size:13px }
+
+    @media (max-width:980px){
+      .card { grid-template-columns: 1fr; }
+      .preview { min-height:200px }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Food Classifier — Demo</h1>
-    <p class="subtitle">Sube una imagen y obtén la predicción (endpoint <code>/predict</code>)</p>
+  <div class="wrap">
+    <header class="appbar">
+      <div class="logo" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="11" fill="white" opacity="0.08"/><path d="M7 12c0-2.761 2.239-5 5-5 2.761 0 5 2.239 5 5s-2.239 5-5 5c-2.761 0-5-2.239-5-5z" fill="white" opacity="0.12"/></svg>
+        <b>FoodClass Pro</b>
+      </div>
+      <div class="title">
+        <div class="h">Food Classifier — Pro</div>
+        <div class="sub">Modelo: <span id="modelName" class="muted">cargando...</span></div>
+      </div>
+    </header>
 
-    <div class="controls">
-      <input type="file" id="file" accept="image/*"/>
-      <button id="send">Enviar</button>
-      <div id="status" style="margin-left:auto;color:var(--muted);font-size:13px"></div>
-    </div>
+    <main class="card" role="main" aria-labelledby="main-title">
+      <section class="preview" id="previewArea" aria-hidden="false">
+        <!-- imagen preview -->
+        <img id="previewImg" alt="preview" src="" style="display:none">
+        <div class="upload-hint">
+          <div style="font-weight:700;margin-bottom:8px">Arrastra o sube una imagen</div>
+          <div class="muted">JPG/PNG. Mejor resultados con vista clara del plato.</div>
+        </div>
+      </section>
 
-    <div id="result" aria-live="polite"></div>
+      <section class="info" aria-live="polite">
+        <div class="controls" role="region" aria-label="Controles de carga">
+          <label class="file-btn" for="fileInput" title="Seleccionar archivo">Seleccionar imagen</label>
+          <input id="fileInput" type="file" accept="image/*" style="display:none"/>
+          <button id="sendBtn" class="primary" disabled>Enviar</button>
+          <div id="status" aria-hidden="false"></div>
+        </div>
+
+        <div class="resultCard" id="resultCard" style="display:none">
+          <div class="label">Predicción: <span id="labelText" style="margin-left:8px">—</span></div>
+          <div class="conf" id="confText">Confianza: —</div>
+          <div id="topListContainer"></div>
+        </div>
+
+        <div style="margin-top:14px" class="muted">
+          Consejos: usa fotos centradas del plato. Si la confianza es baja (<40%), prueba otra foto.
+        </div>
+      </section>
+    </main>
   </div>
 
   <script src="app.js"></script>
