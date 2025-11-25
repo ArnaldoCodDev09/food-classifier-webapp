@@ -19,8 +19,11 @@ fileInput.addEventListener('change', () => {
   previewImg.style.display = 'block';
 });
 
-// allow clicking the fake button label
-document.querySelector('.file-btn').addEventListener('click', () => fileInput.click());
+// allow clicking the fake button label (safe selector for the label)
+const fileLabel = document.querySelector('label[for="fileInput"]');
+if (fileLabel) {
+  fileLabel.addEventListener('click', () => fileInput.click());
+}
 
 // === helper format confidence ===
 function fmtConfidence(v){
@@ -30,7 +33,7 @@ function fmtConfidence(v){
     return `${(v*100).toFixed(2)}%`;
   }
   const n = Number(v);
-  return isNaN(n) ? String(v) : `${(n*100).toFixed(2)}%`;
+  return isNaN(n) ? String(v) : `${(n*100).toFixed(02)}%`;
 }
 
 // === call backend predict ===
@@ -148,8 +151,3 @@ sendBtn.addEventListener('click', async () => {
   }
   draw();
 })();
-
-// === OPTIONAL: quick local sample preview path (para pruebas locales) ===
-// ruta local que subiste: /mnt/data/83344e5a-d378-4479-9122-10e6bb081a5f.png
-// si estás en local y quieres pre-cargar la imagen, descomenta la siguiente línea:
-// previewImg.src = '/mnt/data/83344e5a-d378-4479-9122-10e6bb081a5f.png'; previewImg.style.display='block';
